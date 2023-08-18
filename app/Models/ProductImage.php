@@ -11,8 +11,7 @@ class ProductImage extends Model
     protected $fillable = [
         'product_id',
         'is_main',
-        'content',
+        'filename',
     ];
 
-    // Define relationships, if any
 }
