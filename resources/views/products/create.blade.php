@@ -18,6 +18,14 @@
                 <label for="phone">Discount price</label>
                 <input type="text" title="discount_price" id="discount_price" value="" name="discount_price">
             </div>
+            <div class="form-group-row">
+                <label for="file">Product image</label>
+                <input
+                    type="file"
+                    id="file"
+                    name="file"
+                    accept="image/png, image/jpeg, image/webp, image/jpg" />
+            </div>
 
             <div class="form-group-row">
                 <p>Short description:</p>

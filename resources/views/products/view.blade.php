@@ -5,7 +5,11 @@
         <a href="{{ url()->previous() }}">&lt;&lt;&lt;Go back</a>
         <p class="card-text">Product ID: {{ $product->id }}</p>
         <div class="product-image-container">
-            <img src="{{ asset("/img/Products/$product->id.jpg") }}" alt="product-image-{{$product->id}}">
+            @if(isset($product->image_name))
+                <img src="{{ asset("storage/img/Products/$product->image_name") }}" alt="product-image-{{$product->id}}">
+            @else
+                <img src="{{ asset("/img/default-travolta-confused.png") }}" alt="product-image-{{$product->id}}">
+            @endif
         </div>
         <h4 class="card-title">{{ $product->name }}</h4>
         <div>

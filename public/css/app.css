@@ -87,7 +87,15 @@ h1 {
 
 .alert-danger {
     margin-bottom: 40px;
+}
 
+.main-area {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.product-edit-main-fields-container {
+    width: 40%;
 }
 
 .login-form {
@@ -179,6 +187,10 @@ input[type='password'] {
 
 .product-image-container>img {
     max-height: 260px;
+}
+
+.price-field {
+    width: 190px;
 }
 
 .products-delete-form-container {

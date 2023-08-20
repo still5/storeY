@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateProductRequest;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
 use App\Models\Product; // Import your Product model
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -14,13 +16,13 @@ class ProductController extends Controller
     public function index()
     {
         $model = new Product();
-        $products = $model->getActiveProducts();
+        $products = $model->getActiveProductsWithImageNames();
         return view('products.index', compact('products'));
     }
 
     public function showProduct($id) {
         $model = new Product();
-        $product = $model->getProductById($id);
+        $product = $model->getProductByIdWithImageName($id);
         if ($product->isEmpty()) {
             $text = 'Product not found';
 
@@ -48,8 +50,7 @@ class ProductController extends Controller
             return view('404', compact('text'));
         }
         $model = new Product();
-        $product = $model->getProductById($productId);
-          Log::debug('The product: ' . json_encode($product));
+        $product = $model->getProductByIdWithImageName($productId);
         if ($product->isEmpty()) {
             $text = 'Can\'t find product with ID '.$productId;
 
@@ -62,8 +63,6 @@ class ProductController extends Controller
                 return view('404', compact('text'));
             }
 
-            $productModel = new Product();
-            $product = $productModel->getProductById($productId);
             $product = $product->first();
         }
 
@@ -75,18 +74,30 @@ class ProductController extends Controller
         return view('products.create');
     }
 
-    public function createProduct(CreateProductRequest $request) {
+    public function createProduct(Request $request) {
         $data = [
-            'name' => $request->validated('name'),
-            'price' => $request->validated('price'),
-            'discount_price' => $request->validated('discount_price'),
-            'description_short' => $request->validated('description_short'),
-            'description_full' => $request->validated('description_full'),
-            'specifications' => $request->validated('specifications'),
-            'is_active' => $request->validated('is_active') ? 1 : 0,
+            'name' => $request->input('name'),
+            'price' => $request->input('price'),
+            'discount_price' => $request->input('discount_price'),
+            'description_short' => $request->input('description_short'),
+            'description_full' => $request->input('description_full'),
+            'specifications' => $request->input('specifications'),
+            'is_active' => $request->input('is_active') ? 1 : 0,
         ];
         $newProduct = Product::create($data);
         $productId = $newProduct->id;
+
+        $fileModel = new ProductImage();
+        if($request->file('file')) {
+            $fileName = $request->file->getClientOriginalName();
+            $filePath = '/public/img/Products/'; // . $fileName;
+            $fileModel->id = $productId;
+            $fileModel->is_main = 1;
+            $fileModel->filename = $fileName;
+            $fileModel->product_id = $productId;
+            $fileModel->save();
+            $request->file('file')->storeAs($filePath, $fileName);
+        }
 
         return redirect()->route('products.view', [$productId]);
     }
@@ -106,7 +117,29 @@ class ProductController extends Controller
         $model = Product::where('id', $productId);
         $model->update($data);
 
+        if($request->file('file')) {
+            $file = $request->file('file');
+            $productImage = (new ProductImage)->findMainImageForProduct($productId);
+            $fileName = $file->getClientOriginalName();
+            $filePath = '/public/img/Products/';
+            $imageData = [
+                'product_id' => $productId,
+                'is_main' => 1,
+                'filename' => $fileName,
+            ];
+            if ($productImage) {
+                $productImage->update($imageData);
+            } else {
+                ProductImage::create($imageData);
+            }
+            $request->file('file')->storeAs($filePath, $fileName);
+        }
+
         return redirect()->route('products.view', [$productId]);
+    }
+
+    private function handleFile($file) {
+
     }
 }
 
